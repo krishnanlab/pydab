@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="dab.png" />
+  <img src="https://github.com/krishnanlab/pydab/blob/main/dab.png" />
 </p>
 
 # pydab
