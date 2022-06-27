@@ -1,8 +1,11 @@
+import logging
 import struct
 from itertools import combinations
-from typing import List, Literal, Optional, Tuple
+from typing import List, Literal, Optional, Tuple, Union
 
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 class PyDab:
@@ -10,11 +13,15 @@ class PyDab:
         self,
         filepath: Optional[str] = None,
         mode: Literal["dab", "dat"] = "dab",
+        log_level: Union[str, int] = "WARNING",
     ):
         self._num_genes = 0
         self._gene_ids: List[str] = []
         self._size = 0
         self._weights = np.zeros(0, np.float32)
+
+        self.logger = logger.getChild(self.__class__.__name__)
+        self.logger.setLevel(log_level)
 
         if filepath:
             self.load(filepath, mode)
@@ -56,9 +63,9 @@ class PyDab:
         for i, char_pair in enumerate(struct.iter_unpack("2c", self._raw[slice_])):
             if char_pair == (b"\x00", b"\x00"):
                 # TODO: make static
-                # TODO: log to debug
                 gene_id = name.decode()
                 self.gene_ids.append(gene_id)
+                self.logger.debug(f"{gene_id=}")
                 name = b""
             elif char_pair[1] == b"\x00":
                 name += char_pair[0]
@@ -70,6 +77,7 @@ class PyDab:
                 )
         gene_id = name.decode()
         self.gene_ids.append(gene_id)
+        self.logger.debug(f"{gene_id=}")
 
         if len(self.gene_ids) != self.num_genes:
             raise ValueError(
