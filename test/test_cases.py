@@ -1,9 +1,12 @@
+import filecmp
 import pathlib
+
+import pytest
 
 from pydab import PyDab
 
 CURRENT_PATH = pathlib.Path(__file__).absolute().parent
-DATA_PATH = CURRENT_PATH.joinpath("data")
+DATA_PATH = CURRENT_PATH / "data"
 
 TOL = 6  # error tolerance
 
@@ -22,3 +25,11 @@ def test_pydab_case2():
     assert pdb.num_genes == 3
     assert pdb.gene_ids == ["Gene1", "Gene2", "GENE9"]
     assert pdb.weights.astype(float).round(TOL).tolist() == [0.52, 0.9285, 1]
+
+
+@pytest.mark.parametrize("name", ["case1", "case2"])
+def test_pydab_export_case1(tmpdir, name):
+    pdb = PyDab(DATA_PATH / f"{name}.dab", log_level="INFO")
+    pdb.export(pathlib.Path(tmpdir) / f"{name}.dat")
+
+    assert filecmp.cmp(tmpdir / f"{name}.dat", DATA_PATH / f"{name}.dat")

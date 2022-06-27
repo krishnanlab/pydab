@@ -5,6 +5,8 @@ from typing import List, Literal, Optional, Tuple, Union
 
 import numpy as np
 
+MODES = Literal["dat", "dab", "npz"]
+
 logger = logging.getLogger(__name__)
 
 
@@ -12,7 +14,7 @@ class PyDab:
     def __init__(
         self,
         filepath: Optional[str] = None,
-        mode: Literal["dab", "dat"] = "dab",
+        mode: MODES = "dab",
         log_level: Union[str, int] = "WARNING",
     ):
         self._num_genes = 0
@@ -55,7 +57,7 @@ class PyDab:
         self.gene_ids.append(gene_id)
         self.logger.debug(f"{gene_id=}")
 
-    def _load_dab(self, filepath):
+    def _load_dab(self, filepath: str):
         with open(filepath, "rb") as f:
             self._raw = f.read()
 
@@ -95,10 +97,10 @@ class PyDab:
         # Replace inf (unobserved edges) with zero edge weights
         np.nan_to_num(self._weights, copy=False, posinf=0)
 
-    def _load_dat(self, filepath):
-        pass
+    def _load_dat(self, filepath: str):
+        raise NotImplementedError
 
-    def load(self, filepath: str, mode: Literal["dab", "dat"] = "dab"):
+    def load(self, filepath: str, mode: MODES = "dab"):
         # TODO: check file existence
         if mode == "dab":
             self._load_dab(filepath)
@@ -114,5 +116,29 @@ class PyDab:
             mat[i, j] = w
         return mat + mat.T
 
-    def export(self, filepath):
-        pass
+    def _export_dat(self, filepath: str, sep: str = "\t", **kwargs):
+        with open(filepath, "w") as f:
+            for w, (i, j) in zip(self._weights, combinations(range(self.num_genes), 2)):
+                if w == 0:
+                    self.logger.debug(f"Skipping zero entry ({i}, {j})")
+                else:
+                    self.logger.debug(f"Writting ({i}, {j}) entry with {w=}")
+                    terms = sep.join([self.gene_ids[i], self.gene_ids[j], f"{w:g}"])
+                    f.write(f"{terms}\n")
+        self.logger.info(f"DAT (edgelist) file saved to {filepath}")
+
+    def _export_dab(self, filepath: str, **kwargs):
+        raise NotImplementedError
+
+    def _export_npz(self, filepath: str, **kwargs):
+        raise NotImplementedError
+
+    def export(self, filepath: str, mode: MODES = "dat", **kwargs):
+        if mode == "dat":
+            self._export_dat(filepath, **kwargs)
+        elif mode == "dab":
+            self._export_dab(filepath, **kwargs)
+        elif mode == "npz":
+            self._export_npz(filepath, **kwargs)
+        else:
+            raise ValueError(f"Unknown mode {mode}")
