@@ -11,7 +11,7 @@ TOL = 6  # error tolerance
 
 
 def test_pydab_case1():
-    pdb = PyDab(DATA_PATH.joinpath("case1.dab"))
+    pdb = PyDab(DATA_PATH.joinpath("case1.dab"), log_level="DEBUG")
 
     assert pdb.num_genes == 4
     assert pdb.gene_ids == ["1", "2", "3", "4"]
@@ -19,7 +19,7 @@ def test_pydab_case1():
 
 
 def test_pydab_case2():
-    pdb = PyDab(DATA_PATH.joinpath("case2.dab"))
+    pdb = PyDab(DATA_PATH.joinpath("case2.dab"), log_level="DEBUG")
 
     assert pdb.num_genes == 3
     assert pdb.gene_ids == ["Gene1", "Gene2", "GENE9"]

@@ -49,6 +49,12 @@ class PyDab:
     def weights(self) -> np.ndarray:
         return self._weights
 
+    def _new_gene_id(self, gene_id_byte: bytes):
+        """Add new gene ID to the gene ID list."""
+        gene_id = gene_id_byte.decode()
+        self.gene_ids.append(gene_id)
+        self.logger.debug(f"{gene_id=}")
+
     def _load_dab(self, filepath):
         with open(filepath, "rb") as f:
             self._raw = f.read()
@@ -58,26 +64,21 @@ class PyDab:
         self._weights = np.zeros(self._size, dtype=np.float32)
 
         # Read gene ids
-        name = b""
+        gene_id_byte = b""
         slice_ = slice(5, -(self._size * 4 + 1))
         for i, char_pair in enumerate(struct.iter_unpack("2c", self._raw[slice_])):
             if char_pair == (b"\x00", b"\x00"):
-                # TODO: make static
-                gene_id = name.decode()
-                self.gene_ids.append(gene_id)
-                self.logger.debug(f"{gene_id=}")
-                name = b""
+                self._new_gene_id(gene_id_byte)
+                gene_id_byte = b""
             elif char_pair[1] == b"\x00":
-                name += char_pair[0]
+                gene_id_byte += char_pair[0]
             else:
                 # TODO: check correctness of the calculated loc
                 loc = 7 + i * 2
                 raise ValueError(
                     f"Byte {loc} should be '0x00', got {char_pair[1]} instead",
                 )
-        gene_id = name.decode()
-        self.gene_ids.append(gene_id)
-        self.logger.debug(f"{gene_id=}")
+        self._new_gene_id(gene_id_byte)
 
         if len(self.gene_ids) != self.num_genes:
             raise ValueError(
