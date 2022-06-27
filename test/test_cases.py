@@ -1,7 +1,5 @@
 import pathlib
 
-import pytest
-
 from pydab import PyDab
 
 CURRENT_PATH = pathlib.Path(__file__).absolute().parent
