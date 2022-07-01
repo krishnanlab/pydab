@@ -3,7 +3,7 @@
 </p>
 
 # pydab
-A (_blazing fast_?) Python package for modifying and converting DAB files
+A _blazingly fast_ Python package for modifying and converting DAB files
 
 ## Installation
 
