@@ -111,7 +111,7 @@ class PyDab:
 
     def to_adjmat(self) -> np.ndarray:
         mat = np.array((self.num_genes, self.num_genes), dtype=np.float32)
-        # TODO: improve this by copying one row (upper triang) at a time
+        # TODO: improve this by copying one row (i.e. by using the upper triangle) at a time
         for w, (i, j) in zip(self._weights, combinations(range(self.num_genes), 2)):
             mat[i, j] = w
         return mat + mat.T
